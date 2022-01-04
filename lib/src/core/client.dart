@@ -113,7 +113,7 @@ class Web3Client {
   }
 
   Future<BigInt> getChainId() {
-    return _makeRPCCall<String>('klay_chainId').then(BigInt.parse);
+    return _makeRPCCall<String>('eth_chainId').then(BigInt.parse);
   }
 
   /// Returns true if the node is actively listening for network connections.
@@ -129,7 +129,7 @@ class Web3Client {
 
   /// Returns the version of the Ethereum-protocol the client is using.
   Future<int> getEtherProtocolVersion() async {
-    final hex = await _makeRPCCall<String>('klay_protocolVersion');
+    final hex = await _makeRPCCall<String>('eth_protocolVersion');
     return hexToInt(hex).toInt();
   }
 
@@ -138,7 +138,7 @@ class Web3Client {
   ///
   /// If so, progress information is returned via [SyncInformation].
   Future<SyncInformation> getSyncStatus() async {
-    final data = await _makeRPCCall<dynamic>('klay_syncing');
+    final data = await _makeRPCCall<dynamic>('eth_syncing');
 
     if (data is Map) {
       final startingBlock = hexToInt(data['startingBlock'] as String).toInt();
@@ -152,18 +152,18 @@ class Web3Client {
   }
 
   Future<EthereumAddress> coinbaseAddress() async {
-    final hex = await _makeRPCCall<String>('klay_coinbase');
+    final hex = await _makeRPCCall<String>('eth_coinbase');
     return EthereumAddress.fromHex(hex);
   }
 
   /// Returns true if the connected client is currently mining, false if not.
   Future<bool> isMining() {
-    return _makeRPCCall('klay_mining');
+    return _makeRPCCall('eth_mining');
   }
 
   /// Returns the amount of hashes per second the connected node is mining with.
   Future<int> getMiningHashrate() {
-    return _makeRPCCall<String>('klay_hashrate')
+    return _makeRPCCall<String>('eth_hashrate')
         .then((s) => hexToInt(s).toInt());
   }
 
@@ -172,21 +172,21 @@ class Web3Client {
   /// Although not strictly defined, this value will typically be a sensible
   /// amount to use.
   Future<EtherAmount> getGasPrice() async {
-    final data = await _makeRPCCall<String>('klay_gasPrice');
+    final data = await _makeRPCCall<String>('eth_gasPrice');
 
     return EtherAmount.fromUnitAndValue(EtherUnit.wei, hexToInt(data));
   }
 
   /// Returns the number of the most recent block on the chain.
   Future<int> getBlockNumber() {
-    return _makeRPCCall<String>('klay_blockNumber')
+    return _makeRPCCall<String>('eth_blockNumber')
         .then((s) => hexToInt(s).toInt());
   }
 
   Future<BlockInformation> getBlockInformation(
       {String blockNumber = 'latest', bool isContainFullObj = true}) {
     return _makeRPCCall<Map<String, dynamic>>(
-            'klay_getBlockByNumber', [blockNumber, isContainFullObj])
+            'eth_getBlockByNumber', [blockNumber, isContainFullObj])
         .then((json) => BlockInformation.fromJson(json));
   }
 
@@ -197,7 +197,7 @@ class Web3Client {
   Future<EtherAmount> getBalance(EthereumAddress address, {BlockNum? atBlock}) {
     final blockParam = _getBlockParam(atBlock);
 
-    return _makeRPCCall<String>('klay_getBalance', [address.hex, blockParam])
+    return _makeRPCCall<String>('eth_getBalance', [address.hex, blockParam])
         .then((data) {
       return EtherAmount.fromUnitAndValue(EtherUnit.wei, hexToInt(data));
     });
@@ -205,7 +205,7 @@ class Web3Client {
 
   /// Gets an element from the storage of the contract with the specified
   /// [address] at the specified [position].
-  /// See https://github.com/ethereum/wiki/wiki/JSON-RPC#klay_getstorageat for
+  /// See https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getstorageat for
   /// more details.
   /// This function allows specifying a custom block mined in the past to get
   /// historical data. By default, [BlockNum.current] will be used.
@@ -213,7 +213,7 @@ class Web3Client {
       {BlockNum? atBlock}) {
     final blockParam = _getBlockParam(atBlock);
 
-    return _makeRPCCall<String>('klay_getStorageAt', [
+    return _makeRPCCall<String>('eth_getStorageAt', [
       address.hex,
       '0x${position.toRadixString(16)}',
       blockParam
@@ -229,7 +229,7 @@ class Web3Client {
     final blockParam = _getBlockParam(atBlock);
 
     return _makeRPCCall<String>(
-            'klay_getTransactionCount', [address.hex, blockParam])
+            'eth_getTransactionCount', [address.hex, blockParam])
         .then((hex) => hexToInt(hex).toInt());
   }
 
@@ -237,14 +237,14 @@ class Web3Client {
   /// [transactionHash].
   Future<TransactionInformation> getTransactionByHash(String transactionHash) {
     return _makeRPCCall<Map<String, dynamic>>(
-            'klay_getTransactionByHash', [transactionHash])
+            'eth_getTransactionByHash', [transactionHash])
         .then((s) => TransactionInformation.fromMap(s));
   }
 
   /// Returns an receipt of a transaction based on its hash.
   Future<TransactionReceipt?> getTransactionReceipt(String hash) {
     return _makeRPCCall<Map<String, dynamic>?>(
-            'klay_getTransactionReceipt', [hash])
+            'eth_getTransactionReceipt', [hash])
         .then((s) => s != null ? TransactionReceipt.fromMap(s) : null);
   }
 
@@ -254,18 +254,18 @@ class Web3Client {
   /// historical data. By default, [BlockNum.current] will be used.
   Future<Uint8List> getCode(EthereumAddress address, {BlockNum? atBlock}) {
     return _makeRPCCall<String>(
-        'klay_getCode', [address.hex, _getBlockParam(atBlock)]).then(hexToBytes);
+        'eth_getCode', [address.hex, _getBlockParam(atBlock)]).then(hexToBytes);
   }
 
   /// Returns all logs matched by the filter in [options].
   ///
   /// See also:
   ///  - [events], which can be used to obtain a stream of log events
-  ///  - https://github.com/ethereum/wiki/wiki/JSON-RPC#klay_getlogs
+  ///  - https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getlogs
   Future<List<FilterEvent>> getLogs(FilterOptions options) {
     final filter = _EventFilter(options);
     return _makeRPCCall<List<dynamic>>(
-        'klay_getLogs', [filter._createParamsObject(true)]).then((logs) {
+        'eth_getLogs', [filter._createParamsObject(true)]).then((logs) {
       return logs.map(filter.parseChanges).toList();
     });
   }
@@ -300,7 +300,7 @@ class Web3Client {
   /// included in a mined block, can be used to obtain detailed information
   /// about the transaction.
   Future<String> sendRawTransaction(Uint8List signedTransaction) async {
-    return _makeRPCCall('klay_sendRawTransaction', [
+    return _makeRPCCall('eth_sendRawTransaction', [
       bytesToHex(signedTransaction, include0x: true, padToEvenLength: true)
     ]);
   }
@@ -369,7 +369,7 @@ class Web3Client {
     @Deprecated('Parameter is ignored') BlockNum? atBlock,
   }) async {
     final amountHex = await _makeRPCCall<String>(
-      'klay_estimateGas',
+      'eth_estimateGas',
       [
         {
           if (sender != null) 'from': sender.hex,
@@ -417,7 +417,7 @@ class Web3Client {
       if (sender != null) 'from': sender.hex,
     };
 
-    return _makeRPCCall<String>('klay_call', [call, _getBlockParam(atBlock)]);
+    return _makeRPCCall<String>('eth_call', [call, _getBlockParam(atBlock)]);
   }
 
   /// Listens for new blocks that are added to the chain. The stream will emit

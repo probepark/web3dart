@@ -27,7 +27,7 @@ class _NewBlockFilter extends _Filter<String> {
 
   @override
   _FilterCreationParams create() {
-    return _FilterCreationParams('klay_newBlockFilter', []);
+    return _FilterCreationParams('eth_newBlockFilter', []);
   }
 
   @override
@@ -49,7 +49,7 @@ class _PendingTransactionsFilter extends _Filter<String> {
 
   @override
   _FilterCreationParams create() {
-    return _FilterCreationParams('klay_newPendingTransactionFilter', []);
+    return _FilterCreationParams('eth_newPendingTransactionFilter', []);
   }
 
   @override
@@ -240,7 +240,7 @@ class _EventFilter extends _Filter<FilterEvent> {
 
   @override
   _FilterCreationParams create() {
-    return _FilterCreationParams('klay_newFilter', [_createParamsObject(true)]);
+    return _FilterCreationParams('eth_newFilter', [_createParamsObject(true)]);
   }
 
   @override
@@ -354,7 +354,7 @@ class _FilterEngine {
 
       for (final filter in filterSnapshot) {
         final updatedData =
-            await _rpc.call('klay_getFilterChanges', [filter.id]);
+            await _rpc.call('eth_getFilterChanges', [filter.id]);
 
         for (final payload in updatedData.result) {
           if (!filter._controller.isClosed) {
@@ -400,7 +400,7 @@ class _FilterEngine {
       final connection = _client._connectWithPeer();
       await connection?.sendRequest('klay_unsubscribe', [filter.id]);
     } else {
-      await _rpc.call('klay_uninstallFilter', [filter.id]);
+      await _rpc.call('eth_uninstallFilter', [filter.id]);
     }
   }
 
