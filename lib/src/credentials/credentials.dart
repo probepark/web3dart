@@ -27,7 +27,7 @@ abstract class Credentials {
   Future<EthereumAddress> extractAddress();
 
   /// Signs the [payload] with a private key. The output will be like the
-  /// bytes representation of the [eth_sign RPC method](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign),
+  /// bytes representation of the [klay_sign RPC method](https://github.com/ethereum/wiki/wiki/JSON-RPC#klay_sign),
   /// but without the "Ethereum signed message" prefix.
   /// The [payload] parameter contains the raw data, not a hash.
   Future<Uint8List> sign(Uint8List payload,
